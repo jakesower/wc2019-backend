@@ -1,0 +1,10 @@
+build
+node_modules
+npm-debug.log
+*.tgz
+.idea
+.vscode
+config.json
+config
+log
+db

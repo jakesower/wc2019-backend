@@ -1,0 +1,18 @@
+{
+  "name": "wc2019-back",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^3.0.6",
+    "body": "^5.1.0",
+    "finalhandler": "^1.1.2",
+    "jsonwebtoken": "^8.5.1",
+    "router": "^1.3.3",
+    "sqlite3": "^4.0.8",
+    "uuid": "^3.3.2"
+  },
+  "scripts": {
+    "start": "node ./index.js"
+  }
+}
