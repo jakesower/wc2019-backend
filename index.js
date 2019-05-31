@@ -7,8 +7,9 @@ const finalhandler = require('finalhandler');
 const http = require('http');
 const sqlite3 = require('sqlite3');
 const Router = require('router');
+const config = require('config.json');
 
-const secret = 'urmom';
+const { secret } = config;
 
 const db = new sqlite3.Database('db/wc2019.db');
 
@@ -24,7 +25,7 @@ router.use((req, res, next) => {
     return {...obj, [k]: v };
   }, {});
 
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:2019');
+  res.setHeader('Access-Control-Allow-Origin', config.frontendOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS, PUT');
   res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.setHeader("Access-Control-Allow-Credentials", 'true');
@@ -48,7 +49,7 @@ router.put('/groups', (req, res) => {
 
 router.post('/login', (req, res) => {
   const succeed = (token, code) => {
-    res.setHeader('Set-Cookie', [`player=${token}; Max-Age=10000000; Domain=localhost; Path=/`]);
+    res.setHeader('Set-Cookie', [`player=${token}; Max-Age=10000000; Domain=${config.frontendDomain}; Path=/`]);
     // res.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);
     res.statusCode = code;
     res.end(token);
