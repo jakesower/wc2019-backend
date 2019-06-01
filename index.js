@@ -7,7 +7,7 @@ const finalhandler = require('finalhandler');
 const http = require('http');
 const sqlite3 = require('sqlite3');
 const Router = require('router');
-const config = require('config.json');
+const config = require('./config.json');
 
 const { secret } = config;
 
