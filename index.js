@@ -113,7 +113,7 @@ router.get('/bracket', (req, res) => {
     const player_id = jwt.decode(req.cookieObj.player);
 
     db.get('SELECT * FROM brackets WHERE player_id = ? AND game = ?', player_id, group, (err, data) => {
-      if (err) { res.statusCode = 500; return; }
+      if (err) { res.statusCode = 500; res.end('uh oh'); return; }
 
       res.end(JSON.stringify(data || null));
     });
@@ -165,10 +165,7 @@ router.patch('/bracket/:bracket_id', (req, res) => {
 });
 
 const port = 20192;
-const server = http.createServer((req, res) => {
-  console.log(req.url);
-  return router(req, res, finalhandler(req, res))
-});
+const server = http.createServer((req, res) => router(req, res, finalhandler(req, res)));
 
 server.listen(port);
 console.log(`listening on port ${port}`);
