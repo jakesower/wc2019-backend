@@ -165,7 +165,10 @@ router.patch('/bracket/:bracket_id', (req, res) => {
 });
 
 const port = 20192;
-const server = http.createServer((req, res) => router(req, res, finalhandler(req, res)));
+const server = http.createServer((req, res) => {
+  console.log(req.url);
+  return router(req, res, finalhandler(req, res))
+});
 
 server.listen(port);
 console.log(`listening on port ${port}`);
