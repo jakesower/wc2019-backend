@@ -47,10 +47,14 @@ router.put('/groups', (req, res) => {
   });
 });
 
+router.post('/logout', (req, res) => {
+  res.setHeader('Set-Cookie', [`player=x; Max-Age=0; Domain=${config.frontendDomain}; Path=/`]);
+  res.end('cool story');
+})
+
 router.post('/login', (req, res) => {
   const succeed = (token, code) => {
     res.setHeader('Set-Cookie', [`player=${token}; Max-Age=10000000; Domain=${config.frontendDomain}; Path=/`]);
-    // res.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);
     res.statusCode = code;
     res.end(token);
   };
@@ -115,7 +119,7 @@ router.get('/bracket', (req, res) => {
     });
   }
   else {
-    res.statusCode = 404;
+    res.statusCode = 200;
     res.end('null');
   }
 });
@@ -133,7 +137,7 @@ router.post('/join_group', (req, res) => {
       db.run('INSERT INTO brackets VALUES (?, ?, ?, ?)', id, player_id, group, '{}', (err, data) => {
         if (err) { res.statusCode = 500; return; }
 
-        res.end(JSON.stringify({ id, player_id, game: group, bracket: {} }));
+        res.end(JSON.stringify({ id, player_id, game: group, bracket: '{}' }));
       })
     }
     else {
