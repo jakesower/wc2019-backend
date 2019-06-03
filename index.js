@@ -60,18 +60,18 @@ router.post('/login', (req, res) => {
   };
 
   jsonBody(req, (err, body) => {
-    if (err) { res.statusCode = 400; res.end(); return; }
+    if (err) { res.statusCode = 400; res.end(err); return; }
 
     db.all('SELECT * FROM players WHERE name = ?', body.name, (err, row) => {
-      if (err) { res.statusCode = 500; return; }
+      if (err) { res.statusCode = 500; res.end(err); return; }
 
       if (row.length === 0) { // create
         bcrypt.hash(body.password, 10, (err, hash) => {
-          if (err) { res.statusCode = 500; res.end(); return; }
+          if (err) { res.statusCode = 500; res.end(err); return; }
           const id = uuid();
 
           db.run('INSERT INTO players VALUES (?, ?, ?)', id, body.name, hash, (err) => {
-            if (err) { res.statusCode = 500; res.end(); return; }
+            if (err) { res.statusCode = 500; res.end(err); return; }
 
             succeed(jwt.sign(id, secret), 201);
           });
@@ -79,7 +79,7 @@ router.post('/login', (req, res) => {
       }
       else { // verify
         bcrypt.compare(body.password, row[0].password, (err, same) => {
-          if (err) { res.statusCode = 500; res.end(); return; }
+          if (err) { res.statusCode = 500; res.end(err); return; }
           if (!same) { res.statusCode = 422; res.end('bad credentials'); return; }
 
           succeed(jwt.sign(row[0].id, secret), 200);
