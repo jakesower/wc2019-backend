@@ -102,12 +102,19 @@ router.post('/login', (req, res) => {
 router.get('/current_player', (req, res) => {
   res.setHeader('Content-Type', 'text/json');
   if (req.cookieObj.player) {
-    const player_id = jwt.decode(req.cookieObj.player);
+    jwt.decode(req.cookieObj.player, (err, player_id) => {
+      if (err) {
+        res.setHeader('Set-Cookie', [`player=x; Max-Age=0; Domain=${config.frontendDomain}; Path=/`]);
+        res.end(null);
+        return;
+      }
 
-    db.get('SELECT id, name FROM players WHERE players.id = ?', player_id, (err, data) => {
-      if (err) { res.statusCode = 500; return; }
+      db.get('SELECT id, name FROM players WHERE players.id = ?', player_id, (err, data) => {
+        if (err) { res.statusCode = 500; return; }
 
-      res.end(JSON.stringify(data));
+        res.end(JSON.stringify(data));
+      });
+
     });
   }
   else {
