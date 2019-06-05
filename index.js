@@ -38,12 +38,22 @@ router.options('*', (req, res) => {
   res.end();
 });
 
-router.put('/groups', (req, res) => {
+router.put('/games', (req, res) => {
   jsonBody(req, (err, body) => {
     if (err) { res.statusCode = 400; return; }
 
     db.run('INSERT INTO games VALUES (?, ?)', uuid(), body.name);
     res.statusCode = 201;
+  });
+});
+
+router.get('/games/:game_id', (req, res) => {
+  res.setHeader('Content-Type', 'text/json');
+
+  db.all('SELECT brackets.*, players.name AS player_name FROM brackets INNER JOIN players ON brackets.player_id = players.id WHERE game = ?', req.params.game_id, (err, data) => {
+    if (err) { res.statusCode = 500; res.end('uh oh'); return; }
+
+    res.end(JSON.stringify(data || []));
   });
 });
 
@@ -109,10 +119,10 @@ router.get('/bracket', (req, res) => {
   res.setHeader('Content-Type', 'text/json');
   if (req.cookieObj.player) {
     const query = url.parse(req.url, true).query;
-    const group = query ? query.group : null;
+    const game = query ? query.game : null;
     const player_id = jwt.decode(req.cookieObj.player);
 
-    db.get('SELECT * FROM brackets WHERE player_id = ? AND game = ?', player_id, group, (err, data) => {
+    db.get('SELECT * FROM brackets WHERE player_id = ? AND game = ?', player_id, game, (err, data) => {
       if (err) { res.statusCode = 500; res.end('uh oh'); return; }
 
       res.end(JSON.stringify(data || null));
@@ -124,21 +134,25 @@ router.get('/bracket', (req, res) => {
   }
 });
 
-router.post('/join_group', (req, res) => {
+router.post('/join_game', (req, res) => {
   jsonBody(req, (err, body) => {
     if (err) { res.statusCode = 400; return; }
 
-    const group = body.group || null;
+    const game = body.game || null;
 
-    if (req.cookieObj.player && group) {
+    if (req.cookieObj.player && game) {
       const id = uuid();
       const player_id = jwt.decode(req.cookieObj.player);
 
-      db.run('INSERT INTO brackets VALUES (?, ?, ?, ?)', id, player_id, group, '{}', (err, data) => {
+      db.run('INSERT INTO brackets VALUES (?, ?, ?, ?)', id, player_id, game, '{}', (err, data) => {
         if (err) { res.statusCode = 500; return; }
 
-        res.end(JSON.stringify({ id, player_id, game: group, bracket: '{}' }));
-      })
+        db.all('SELECT brackets.*, players.name AS player_name FROM brackets INNER JOIN players ON brackets.player_id = players.id WHERE game = ?', game, (err, data) => {
+          if (err) { res.statusCode = 500; res.end('uh oh'); return; }
+
+          res.end(JSON.stringify(data || []));
+        });
+      });
     }
     else {
       res.statusCode = 401;
@@ -157,9 +171,14 @@ router.patch('/bracket/:bracket_id', (req, res) => {
     db.run('UPDATE brackets SET bracket = ? WHERE id = ? AND player_id = ?', body.bracket, req.params.bracket_id, player_id, (err, data) => {
       if (err) { res.statusCode = 400; return; }
 
-      db.get('SELECT * FROM brackets WHERE id = ?', req.params.bracket_id, (err, data) => {
-        res.end(JSON.stringify(data));
-      });
+      db.all(`
+        SELECT general.*, players.name AS player_name FROM brackets AS specific
+        INNER JOIN brackets as general ON specific.game = general.game
+        INNER JOIN players ON specific.player_id = players.id
+        WHERE specific.id = ?`,
+        req.params.bracket_id, (err, data) => {
+          res.end(JSON.stringify(data));
+        });
     });
   });
 });
