@@ -175,7 +175,7 @@ router.patch('/bracket/:bracket_id', (req, res) => {
       db.all(`
         SELECT general.*, players.name AS player_name FROM brackets AS specific
         INNER JOIN brackets as general ON specific.game = general.game
-        INNER JOIN players ON specific.player_id = players.id
+        INNER JOIN players ON general.player_id = players.id
         WHERE specific.id = ?`,
         req.params.bracket_id, (err, data) => {
           res.end(JSON.stringify(data));
